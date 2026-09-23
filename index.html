@@ -46,7 +46,8 @@
         ::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-pame-pink h-screen flex flex-col overflow-hidden" onclick="initAudio(); mantenerFoco()">
+<!-- Quitamos h-screen y overflow-hidden para permitir scroll en celulares -->
+<body class="bg-pame-pink min-h-screen flex flex-col" onclick="initAudio(); mantenerFoco()">
 
     <header class="bg-white text-pame-darkpink p-4 shadow-sm text-center rounded-b-3xl mx-4 mt-2 border-b-4 border-pame-purple relative overflow-hidden">
         <h1 class="text-4xl font-bold tracking-wide flex items-center justify-center gap-3 relative z-10">
@@ -54,7 +55,8 @@
         </h1>
     </header>
 
-    <main class="flex-1 flex flex-col md:flex-row p-4 gap-6 overflow-hidden">
+    <!-- Quitamos overflow-hidden aquí también -->
+    <main class="flex-1 flex flex-col md:flex-row p-4 gap-6">
 
         <div class="flex-1 bg-white rounded-[2rem] shadow-lg p-6 flex flex-col border-4 border-white">
             <div class="relative mb-2">
@@ -65,7 +67,8 @@
 
             <div id="mensaje" class="text-center h-8 text-pame-darkpink font-bold text-lg transition-all duration-300"></div>
 
-            <div class="flex-1 overflow-y-auto bg-gray-50 rounded-[1.5rem] p-4 border-2 border-gray-100">
+            <!-- Agregamos min-h-[200px] para que la tabla no colapse en el celular -->
+            <div class="flex-1 overflow-y-auto bg-gray-50 rounded-[1.5rem] p-4 border-2 border-gray-100 min-h-[200px] md:min-h-0">
                 <table class="w-full text-left">
                     <thead>
                         <tr class="border-b-2 border-pame-mint text-gray-400 text-lg">
@@ -169,20 +172,16 @@
             try {
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(texto);
-                    utterance.lang = 'es-CO'; // Solicitamos acento de Colombia
-                    utterance.pitch = 1.6; // Un poco más aguda y tierna
+                    utterance.lang = 'es-CO'; 
+                    utterance.pitch = 1.6; 
                     utterance.rate = 1.0;
                     
                     const voces = window.speechSynthesis.getVoices();
-                    
-                    // 1. Buscamos primero las voces de Colombia (es-CO)
                     const vocesColombia = voces.filter(v => v.lang === 'es-CO' || v.lang.includes('CO'));
                     
                     if (vocesColombia.length > 0) {
-                        // Usamos la voz colombiana (por ejemplo 'Ximena' en iOS o la genérica de Google)
                         utterance.voice = vocesColombia.find(v => v.name.includes('Ximena')) || vocesColombia[0];
                     } else {
-                        // 2. Si no hay Colombia, Plan B: Voz dulce en español general
                         const vocesEspanol = voces.filter(v => v.lang.startsWith('es'));
                         if (vocesEspanol.length > 0) {
                             utterance.voice = vocesEspanol.find(v => v.name.includes('Paulina') || v.name.includes('Monica')) || vocesEspanol[0];
@@ -211,7 +210,6 @@
             modalExito.classList.remove('hidden');
             
             lanzarConfeti();
-            // Le agregamos un "pues" para darle un toque más colombiano a la frase, por si la voz suena neutral ;)
             hablar("¡Venta mágica completada pues! Gracias por comprar en Pame Store.");
         }
 
