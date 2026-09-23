@@ -169,23 +169,24 @@
             try {
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(texto);
-                    utterance.lang = 'es-MX';
+                    utterance.lang = 'es-CO'; // Solicitamos acento de Colombia
                     utterance.pitch = 1.6; // Un poco más aguda y tierna
                     utterance.rate = 1.0;
                     
                     const voces = window.speechSynthesis.getVoices();
                     
-                    // 1. Filtramos estrictamente las voces que hablen español
-                    const vocesEspanol = voces.filter(v => v.lang.startsWith('es'));
+                    // 1. Buscamos primero las voces de Colombia (es-CO)
+                    const vocesColombia = voces.filter(v => v.lang === 'es-CO' || v.lang.includes('CO'));
                     
-                    if (vocesEspanol.length > 0) {
-                        // 2. Buscamos las más bonitas DENTRO de las de español
-                        const vozDulce = vocesEspanol.find(v => v.name.includes('Paulina') || v.name.includes('Monica') || v.name.includes('Sabina')) || 
-                                         vocesEspanol.find(v => v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('mujer')) || 
-                                         vocesEspanol.find(v => v.lang === 'es-MX') || 
-                                         vocesEspanol[0]; // Si no hay favoritas, agarramos la primera que sea en español
-                        
-                        utterance.voice = vozDulce;
+                    if (vocesColombia.length > 0) {
+                        // Usamos la voz colombiana (por ejemplo 'Ximena' en iOS o la genérica de Google)
+                        utterance.voice = vocesColombia.find(v => v.name.includes('Ximena')) || vocesColombia[0];
+                    } else {
+                        // 2. Si no hay Colombia, Plan B: Voz dulce en español general
+                        const vocesEspanol = voces.filter(v => v.lang.startsWith('es'));
+                        if (vocesEspanol.length > 0) {
+                            utterance.voice = vocesEspanol.find(v => v.name.includes('Paulina') || v.name.includes('Monica')) || vocesEspanol[0];
+                        }
                     }
 
                     window.speechSynthesis.speak(utterance);
@@ -210,7 +211,8 @@
             modalExito.classList.remove('hidden');
             
             lanzarConfeti();
-            hablar("¡Venta mágica completada! Gracias por comprar en Pame Store.");
+            // Le agregamos un "pues" para darle un toque más colombiano a la frase, por si la voz suena neutral ;)
+            hablar("¡Venta mágica completada pues! Gracias por comprar en Pame Store.");
         }
 
         inputEscaner.addEventListener('keypress', function(e) {
