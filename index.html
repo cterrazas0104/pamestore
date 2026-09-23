@@ -6,6 +6,10 @@
     <title>🎀 Pame Store 🎀</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Librería SÚPER ESTABLE para la lluvia de Confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -29,9 +33,16 @@
             0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
-        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         
-        /* Ocultar barra de desplazamiento para que se vea más como app */
+        /* Efecto de brillo mágico en el total */
+        @keyframes resplandor {
+            0% { box-shadow: 0 0 10px #98ff98; }
+            50% { box-shadow: 0 0 30px #98ff98, 0 0 10px #ffb6c1; }
+            100% { box-shadow: 0 0 10px #98ff98; }
+        }
+        .brillo-magico { animation: resplandor 2s infinite; }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #fff4cc; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; }
@@ -55,14 +66,13 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-2xl">
                     🪄
                 </div>
-                <!-- inputmode="none" evita que salga el teclado virtual -->
-                <input type="text" id="escaner" inputmode="none" placeholder="¡Pasa el código de barras por el lector!" 
+                <input type="text" id="escaner" inputmode="none" placeholder="¡Pasa el código por el lector!" 
                        class="w-full text-xl pl-12 pr-4 py-4 border-4 border-pame-purple rounded-[1.5rem] focus:outline-none focus:border-pame-darkpink bg-pame-yellow text-gray-700 font-semibold placeholder-gray-400" autofocus>
             </div>
             
-            <div id="mensaje" class="text-center h-8 text-pame-darkpink font-bold text-lg"></div>
+            <div id="mensaje" class="text-center h-8 text-pame-darkpink font-bold text-lg transition-all duration-300"></div>
 
-            <div class="flex-1 overflow-y-auto bg-gray-50 rounded-[1.5rem] p-4 border-2 border-gray-100">
+            <div class="flex-1 overflow-y-auto bg-gray-50 rounded-[1.5rem] p-4 border-2 border-gray-100 relative">
                 <table class="w-full text-left">
                     <thead>
                         <tr class="border-b-2 border-pame-mint text-gray-400 text-lg">
@@ -75,7 +85,7 @@
                     </tbody>
                 </table>
                 <div id="carrito-vacio" class="text-center text-gray-400 mt-10 text-xl flex flex-col items-center">
-                    <span class="text-4xl mb-2">🛒</span>
+                    <span class="text-5xl mb-3 animate-bounce">🛒</span>
                     ¡El carrito está vacío!
                 </div>
             </div>
@@ -83,17 +93,15 @@
 
         <!-- Panel Derecho: Totales -->
         <div class="md:w-1/3 bg-white rounded-[2rem] shadow-lg p-8 flex flex-col justify-between border-4 border-white relative overflow-hidden">
-            <!-- Decoración de fondo -->
             <div class="absolute -top-10 -right-10 text-8xl opacity-10 pointer-events-none">✨</div>
             
             <div class="text-center mt-4">
                 <h2 class="text-2xl text-gray-400 font-semibold mb-2">Total Mágico</h2>
-                <div class="text-6xl font-bold text-pame-darkpink bg-pame-yellow py-6 rounded-[2rem] border-4 border-pame-mint inline-block w-full" id="total-pantalla">
+                <div class="text-6xl font-bold text-pame-darkpink bg-pame-yellow py-6 rounded-[2rem] border-4 border-pame-mint inline-block w-full brillo-magico transition-all duration-300" id="total-pantalla">
                     $0.00
                 </div>
             </div>
             
-            <!-- CONTENEDOR DE BOTONES ACTUALIZADO PARA STRIPE Y EFECTIVO -->
             <div id="botones-cobro" class="flex flex-col gap-3 mt-8 z-10">
                 <button onclick="cobrar('tarjeta')" class="w-full bg-blue-500 text-white text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#2563eb] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#2563eb]">
                     💳 Cobrar con Tarjeta
@@ -111,11 +119,11 @@
 
     <!-- Modal de Venta Exitosa -->
     <div id="modal-exito" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full mx-4 text-center transform scale-90 transition-transform duration-300 pop-in border-4 border-pame-pink">
-            <div class="text-6xl mb-4">🎉</div>
-            <h2 class="text-3xl font-bold text-pame-darkpink mb-2">¡Venta Exitosa!</h2>
-            <p class="text-gray-600 text-xl mb-6">Gracias por comprar en Pame Store.</p>
-            <div class="text-4xl font-bold text-gray-800 bg-pame-yellow py-4 rounded-xl mb-6 border-2 border-pame-mint" id="modal-total">
+        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full mx-4 text-center transform scale-90 transition-transform duration-300 border-4 border-pame-pink shadow-[0_0_40px_rgba(255,182,193,0.8)]">
+            <div class="text-7xl mb-4 animate-bounce">🎉</div>
+            <h2 class="text-4xl font-bold text-pame-darkpink mb-2">¡Mágico!</h2>
+            <p class="text-gray-600 text-xl mb-6 font-medium">¡Gracias por comprar en Pame Store!</p>
+            <div class="text-5xl font-bold text-gray-800 bg-pame-yellow py-4 rounded-xl mb-6 border-4 border-pame-mint" id="modal-total">
                 $0.00
             </div>
             <button onclick="cerrarModal()" class="w-full bg-pame-purple text-white text-2xl font-bold py-4 rounded-2xl shadow-[0_6px_0_#a87df0] hover:shadow-[0_3px_0_#a87df0] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2">
@@ -123,10 +131,11 @@
             </button>
         </div>
     </div>
-<script>
-  // TU URL DE LA API
+
+    <script>
+        // Tu API segura y confirmada
         const API_URL = "https://script.google.com/macros/s/AKfycbzqcJcyzCJD6hD4DFOayWjgkJqtsmpAS91eHWDVkt4lROi41wCY3uBP4M_H40FJz20HVg/exec"; 
-        const APP_TOKEN = "PameStoreSecreto2026"; // Debe coincidir con el de Apps Script
+        const APP_TOKEN = "PameStoreSecreto2026"; 
         
         let carrito = [];
         let total = 0;
@@ -137,6 +146,35 @@
         const carritoVacio = document.getElementById('carrito-vacio');
         const modalExito = document.getElementById('modal-exito');
 
+        // EFECTO VISUAL ESTABLE: Lluvia de confeti
+        function fiestaConfeti() {
+            try {
+                var duration = 3000;
+                var end = Date.now() + duration;
+                (function frame() {
+                    confetti({
+                        particleCount: 5, angle: 60, spread: 55, origin: { x: 0 },
+                        colors: ['#ffb6c1', '#ff6b81', '#cda4ff', '#98ff98', '#fff4cc']
+                    });
+                    confetti({
+                        particleCount: 5, angle: 120, spread: 55, origin: { x: 1 },
+                        colors: ['#ffb6c1', '#ff6b81', '#cda4ff', '#98ff98', '#fff4cc']
+                    });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            } catch (e) {
+                console.log("Confeti ignorado de forma segura.");
+            }
+        }
+
+        function celebrarVentaExitosa(textoModal) {
+            document.getElementById('modal-total').innerText = textoModal;
+            modalExito.classList.remove('hidden');
+            modalExito.querySelector('div').classList.add('pop-in');
+            fiestaConfeti(); // Solo llamamos a la magia visual
+        }
+
+        // CONTROL DEL LECTOR DE CÓDIGOS
         inputEscaner.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -151,7 +189,7 @@
         }
 
         async function buscarProducto(codigoEscaneado) {
-            mensaje.innerText = "✨ Buscando la magia... ✨";
+            mensaje.innerText = "✨ Buscando... ✨";
             mensaje.classList.remove("text-red-500");
             mensaje.classList.add("text-pame-purple");
             
@@ -160,7 +198,6 @@
                 const data = await response.json();
 
                 if (data.status === 'success') {
-                    // Ahora guardamos el CÓDIGO en el carrito
                     agregarAlCarrito(data.codigo, data.producto, parseFloat(data.precio));
                     mensaje.innerText = "";
                 } else {
@@ -170,7 +207,6 @@
                     setTimeout(() => mensaje.innerText = "", 2000);
                 }
             } catch (error) {
-                console.error("Error", error);
                 mensaje.innerText = "Error de conexión 📡";
                 setTimeout(() => mensaje.innerText = "", 2000);
             }
@@ -192,6 +228,7 @@
                 
                 carrito.forEach((item, index) => {
                     const tr = document.createElement('tr');
+                    // Solo animamos el último artículo para que salte
                     if (index === carrito.length - 1) {
                         tr.className = "border-b-2 border-gray-100 hover:bg-gray-100 pop-in transition-colors";
                     } else {
@@ -206,7 +243,14 @@
                 });
             }
             
+            // Efecto de latido en el total
+            totalPantalla.classList.remove('scale-110');
+            void totalPantalla.offsetWidth; 
+            if(carrito.length > 0) totalPantalla.classList.add('scale-110');
+            
             totalPantalla.innerText = `$${total.toFixed(2)}`;
+            setTimeout(() => totalPantalla.classList.remove('scale-110'), 300);
+            
             listaCarrito.parentElement.parentElement.scrollTop = listaCarrito.parentElement.parentElement.scrollHeight;
         }
 
@@ -225,17 +269,16 @@
             }
             
             const divBotones = document.getElementById('botones-cobro');
-            divBotones.innerHTML = "<div class='text-xl text-pame-purple font-bold text-center w-full bg-white p-4 rounded-xl shadow'>⏳ Conectando de forma segura...</div>";
+            divBotones.innerHTML = "<div class='text-xl text-pame-purple font-bold text-center w-full bg-white p-4 rounded-xl shadow animate-pulse'>✨ Preparando Magia... ✨</div>";
 
             try {
                 const urlActual = window.location.origin + window.location.pathname;
-
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ 
                         action: metodo === 'tarjeta' ? 'pago_tarjeta' : 'pago_efectivo',
-                        token: APP_TOKEN, // Se envía el token de seguridad
-                        articulos: carrito, // Se envían los códigos
+                        token: APP_TOKEN,
+                        articulos: carrito,
                         dominio: urlActual
                     })
                 });
@@ -245,11 +288,10 @@
                 if (metodo === 'tarjeta' && data.status === 'success') {
                     window.location.href = data.url;
                 } else if (metodo === 'efectivo' && data.status === 'success') {
-                    document.getElementById('modal-total').innerText = `$${total.toFixed(2)}`;
-                    modalExito.classList.remove('hidden');
                     restaurarBotones();
+                    celebrarVentaExitosa(`$${total.toFixed(2)}`);
                 } else {
-                    alert("Acceso denegado o error: " + (data.message || "Desconocido"));
+                    alert("Uy, algo salió mal con la magia: " + (data.message || "Desconocido"));
                     restaurarBotones();
                 }
                 
@@ -283,10 +325,9 @@
         window.onload = function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get("pago") === "exito") {
-                document.getElementById('modal-total').innerText = "¡PAGADO CON TARJETA!";
-                modalExito.classList.remove('hidden');
+                celebrarVentaExitosa("¡PAGADO CON TARJETA!");
             } else if (params.get("pago") === "cancelado") {
-                mensaje.innerText = "Pago cancelado por el cliente 😔";
+                mensaje.innerText = "El cliente canceló 😔";
                 mensaje.classList.add("text-red-500");
                 setTimeout(() => mensaje.innerText = "", 4000);
             }
