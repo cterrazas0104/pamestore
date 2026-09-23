@@ -125,8 +125,9 @@
     </div>
 
     <script>
-        // TU URL DE LA API
+// TU URL DE LA API
         const API_URL = "https://script.google.com/macros/s/AKfycbxQSws_dDfaF4DjabD3oSGwuZ1Qhsj5XKvBe0acYlqmjjVQmf9OTn8Hs5UVIEO9mVFgdw/exec"; 
+        const APP_TOKEN = "PameStoreSecreto2026"; // Debe coincidir con el de Apps Script
         
         let carrito = [];
         let total = 0;
@@ -137,7 +138,6 @@
         const carritoVacio = document.getElementById('carrito-vacio');
         const modalExito = document.getElementById('modal-exito');
 
-        // Escuchar el escáner
         inputEscaner.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -147,22 +147,22 @@
             }
         });
 
-        // Forzar que el teclado no salga en la tablet, pero siempre pueda leer
         function mantenerFoco() {
             setTimeout(() => inputEscaner.focus(), 10);
         }
 
-        async function buscarProducto(codigo) {
+        async function buscarProducto(codigoEscaneado) {
             mensaje.innerText = "✨ Buscando la magia... ✨";
             mensaje.classList.remove("text-red-500");
             mensaje.classList.add("text-pame-purple");
             
             try {
-                const response = await fetch(`${API_URL}?codigo=${codigo}`);
+                const response = await fetch(`${API_URL}?codigo=${codigoEscaneado}`);
                 const data = await response.json();
 
                 if (data.status === 'success') {
-                    agregarAlCarrito(data.producto, parseFloat(data.precio));
+                    // Ahora guardamos el CÓDIGO en el carrito
+                    agregarAlCarrito(data.codigo, data.producto, parseFloat(data.precio));
                     mensaje.innerText = "";
                 } else {
                     mensaje.innerText = "¡Uy! Código no encontrado 🙈";
@@ -171,14 +171,14 @@
                     setTimeout(() => mensaje.innerText = "", 2000);
                 }
             } catch (error) {
-                console.error("Error de conexión", error);
+                console.error("Error", error);
                 mensaje.innerText = "Error de conexión 📡";
                 setTimeout(() => mensaje.innerText = "", 2000);
             }
         }
 
-        function agregarAlCarrito(nombre, precio) {
-            carrito.push({ nombre, precio });
+        function agregarAlCarrito(codigo, nombre, precio) {
+            carrito.push({ codigo, nombre, precio });
             total += precio;
             actualizarUI();
         }
@@ -226,18 +226,17 @@
             }
             
             const divBotones = document.getElementById('botones-cobro');
-            divBotones.innerHTML = "<div class='text-xl text-pame-purple font-bold text-center w-full bg-white p-4 rounded-xl shadow'>⏳ Conectando con el banco...</div>";
+            divBotones.innerHTML = "<div class='text-xl text-pame-purple font-bold text-center w-full bg-white p-4 rounded-xl shadow'>⏳ Conectando de forma segura...</div>";
 
             try {
-                // Obtenemos la URL actual para que Stripe sepa a dónde regresarnos
                 const urlActual = window.location.origin + window.location.pathname;
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ 
                         action: metodo === 'tarjeta' ? 'pago_tarjeta' : 'pago_efectivo',
-                        total: total, 
-                        articulos: carrito,
+                        token: APP_TOKEN, // Se envía el token de seguridad
+                        articulos: carrito, // Se envían los códigos
                         dominio: urlActual
                     })
                 });
@@ -245,15 +244,13 @@
                 const data = await response.json();
 
                 if (metodo === 'tarjeta' && data.status === 'success') {
-                    // Si es tarjeta, redireccionamos a la página oficial y segura de Stripe
                     window.location.href = data.url;
                 } else if (metodo === 'efectivo' && data.status === 'success') {
-                    // Si es efectivo/juego, mostramos el modal directamente
                     document.getElementById('modal-total').innerText = `$${total.toFixed(2)}`;
                     modalExito.classList.remove('hidden');
                     restaurarBotones();
                 } else {
-                    alert("Uy, hubo un error de conexión: " + (data.message || "Desconocido"));
+                    alert("Acceso denegado o error: " + (data.message || "Desconocido"));
                     restaurarBotones();
                 }
                 
@@ -264,7 +261,6 @@
         }
 
         function restaurarBotones() {
-            // Restaura los botones originales si hubo error o si fue pago en efectivo exitoso
             const divBotones = document.getElementById('botones-cobro');
             divBotones.innerHTML = `
                 <button onclick="cobrar('tarjeta')" class="w-full bg-blue-500 text-white text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#2563eb] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#2563eb]">
@@ -273,7 +269,6 @@
                 <button onclick="cobrar('efectivo')" class="w-full bg-pame-mint text-gray-800 text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#75d675] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#75d675]">
                     💵 Cobrar de Juego
                 </button>
-                
                 <button onclick="limpiarCarrito()" class="w-full text-gray-400 font-semibold p-2 hover:bg-gray-100 rounded-[1.5rem] transition-colors text-md mt-2">
                     ❌ Empezar de nuevo
                 </button>
@@ -283,11 +278,9 @@
         function cerrarModal() {
             modalExito.classList.add('hidden');
             limpiarCarrito();
-            // Si venimos de un pago de Stripe, limpiamos la URL para quitar el ?pago=exito
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // --- CÓDIGO PARA REVISAR SI VENIMOS DE PAGAR EN STRIPE ---
         window.onload = function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get("pago") === "exito") {
@@ -300,7 +293,6 @@
             }
         };
 
-        // Iniciar con UI limpia
         actualizarUI();
     </script>
 </body>
