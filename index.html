@@ -93,11 +93,16 @@
                 </div>
             </div>
             
-            <div class="flex flex-col gap-4 mt-8">
-                <button onclick="cobrar()" class="w-full bg-pame-mint text-gray-800 text-3xl font-bold py-6 rounded-[2rem] shadow-[0_8px_0_#75d675] hover:shadow-[0_4px_0_#75d675] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#75d675]">
-                    💖 ¡COBRAR! 💖
+            <!-- CONTENEDOR DE BOTONES ACTUALIZADO PARA STRIPE Y EFECTIVO -->
+            <div id="botones-cobro" class="flex flex-col gap-3 mt-8 z-10">
+                <button onclick="cobrar('tarjeta')" class="w-full bg-blue-500 text-white text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#2563eb] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#2563eb]">
+                    💳 Cobrar con Tarjeta
                 </button>
-                <button onclick="limpiarCarrito()" class="w-full text-gray-400 font-semibold p-4 hover:bg-gray-100 rounded-[1.5rem] transition-colors text-lg">
+                <button onclick="cobrar('efectivo')" class="w-full bg-pame-mint text-gray-800 text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#75d675] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#75d675]">
+                    💵 Cobrar de Juego
+                </button>
+                
+                <button onclick="limpiarCarrito()" class="w-full text-gray-400 font-semibold p-2 hover:bg-gray-100 rounded-[1.5rem] transition-colors text-md mt-2">
                     ❌ Empezar de nuevo
                 </button>
             </div>
@@ -120,7 +125,7 @@
     </div>
 
     <script>
-        // AQUÍ ESTÁ TU URL DE LA API
+        // TU URL DE LA API
         const API_URL = "https://script.google.com/macros/s/AKfycbxQSws_dDfaF4DjabD3oSGwuZ1Qhsj5XKvBe0acYlqmjjVQmf9OTn8Hs5UVIEO9mVFgdw/exec"; 
         
         let carrito = [];
@@ -144,7 +149,6 @@
 
         // Forzar que el teclado no salga en la tablet, pero siempre pueda leer
         function mantenerFoco() {
-            // Un pequeño delay ayuda en algunos navegadores de tablet
             setTimeout(() => inputEscaner.focus(), 10);
         }
 
@@ -167,7 +171,6 @@
                     setTimeout(() => mensaje.innerText = "", 2000);
                 }
             } catch (error) {
-                // Modo offline de emergencia por si falla el internet
                 console.error("Error de conexión", error);
                 mensaje.innerText = "Error de conexión 📡";
                 setTimeout(() => mensaje.innerText = "", 2000);
@@ -190,7 +193,6 @@
                 
                 carrito.forEach((item, index) => {
                     const tr = document.createElement('tr');
-                    // Solo el último elemento tiene animación pop-in
                     if (index === carrito.length - 1) {
                         tr.className = "border-b-2 border-gray-100 hover:bg-gray-100 pop-in transition-colors";
                     } else {
@@ -216,42 +218,87 @@
             mantenerFoco();
         }
 
-        async function cobrar() {
+        async function cobrar(metodo) {
             if (carrito.length === 0) {
                 mensaje.innerText = "¡El carrito está vacío! 🛒";
                 setTimeout(() => mensaje.innerText = "", 2000);
                 return;
             }
             
-            const btn = document.querySelector('button');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = "⏳ Mágia en proceso...";
-            btn.disabled = true;
+            const divBotones = document.getElementById('botones-cobro');
+            divBotones.innerHTML = "<div class='text-xl text-pame-purple font-bold text-center w-full bg-white p-4 rounded-xl shadow'>⏳ Conectando con el banco...</div>";
 
             try {
-                // Registrar venta en Google Sheets
-                await fetch(API_URL, {
+                // Obtenemos la URL actual para que Stripe sepa a dónde regresarnos
+                const urlActual = window.location.origin + window.location.pathname;
+
+                const response = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ total: total, articulos: carrito })
+                    body: JSON.stringify({ 
+                        action: metodo === 'tarjeta' ? 'pago_tarjeta' : 'pago_efectivo',
+                        total: total, 
+                        articulos: carrito,
+                        dominio: urlActual
+                    })
                 });
                 
-                // Mostrar Ticket de Éxito
-                document.getElementById('modal-total').innerText = `$${total.toFixed(2)}`;
-                modalExito.classList.remove('hidden');
+                const data = await response.json();
+
+                if (metodo === 'tarjeta' && data.status === 'success') {
+                    // Si es tarjeta, redireccionamos a la página oficial y segura de Stripe
+                    window.location.href = data.url;
+                } else if (metodo === 'efectivo' && data.status === 'success') {
+                    // Si es efectivo/juego, mostramos el modal directamente
+                    document.getElementById('modal-total').innerText = `$${total.toFixed(2)}`;
+                    modalExito.classList.remove('hidden');
+                    restaurarBotones();
+                } else {
+                    alert("Uy, hubo un error de conexión: " + (data.message || "Desconocido"));
+                    restaurarBotones();
+                }
                 
             } catch (error) {
-                alert("Hubo un error de conexión, pero no pasa nada, sigamos jugando.");
-                console.error(error);
-            } finally {
-                btn.innerHTML = textoOriginal;
-                btn.disabled = false;
+                alert("Hubo un error de conexión.");
+                restaurarBotones();
             }
+        }
+
+        function restaurarBotones() {
+            // Restaura los botones originales si hubo error o si fue pago en efectivo exitoso
+            const divBotones = document.getElementById('botones-cobro');
+            divBotones.innerHTML = `
+                <button onclick="cobrar('tarjeta')" class="w-full bg-blue-500 text-white text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#2563eb] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#2563eb]">
+                    💳 Cobrar con Tarjeta
+                </button>
+                <button onclick="cobrar('efectivo')" class="w-full bg-pame-mint text-gray-800 text-2xl font-bold py-4 rounded-[1.5rem] shadow-[0_6px_0_#75d675] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#75d675]">
+                    💵 Cobrar de Juego
+                </button>
+                
+                <button onclick="limpiarCarrito()" class="w-full text-gray-400 font-semibold p-2 hover:bg-gray-100 rounded-[1.5rem] transition-colors text-md mt-2">
+                    ❌ Empezar de nuevo
+                </button>
+            `;
         }
 
         function cerrarModal() {
             modalExito.classList.add('hidden');
             limpiarCarrito();
+            // Si venimos de un pago de Stripe, limpiamos la URL para quitar el ?pago=exito
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
+
+        // --- CÓDIGO PARA REVISAR SI VENIMOS DE PAGAR EN STRIPE ---
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("pago") === "exito") {
+                document.getElementById('modal-total').innerText = "¡PAGADO CON TARJETA!";
+                modalExito.classList.remove('hidden');
+            } else if (params.get("pago") === "cancelado") {
+                mensaje.innerText = "Pago cancelado por el cliente 😔";
+                mensaje.classList.add("text-red-500");
+                setTimeout(() => mensaje.innerText = "", 4000);
+            }
+        };
 
         // Iniciar con UI limpia
         actualizarUI();
