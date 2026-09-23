@@ -4,164 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🎀 Pame Store 🎀</title>
-    
-    <!-- Importamos Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Importamos una fuente muy cute de Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Configuramos colores personalizados en Tailwind -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Fredoka', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Fredoka', 'sans-serif'] },
                     colors: {
                         pame: {
-                            light: '#ffe4e6', // Rose 100
-                            main: '#f472b6',  // Pink 400
-                            dark: '#db2777',  // Pink 600
-                            accent: '#c084fc', // Purple 400
+                            pink: '#ffb6c1',
+                            darkpink: '#ff6b81',
+                            purple: '#cda4ff',
+                            mint: '#98ff98',
+                            yellow: '#fff4cc'
                         }
                     }
                 }
             }
         }
     </script>
-
     <style>
-        /* Estilos extra para hacer que se vea más como una app de tablet */
-        body {
-            /* Fondo de degradado pastel */
-            background: linear-gradient(135deg, #ffe4e6 0%, #f3e8ff 100%);
-            overscroll-behavior-y: none; /* Evita el "rebote" al hacer scroll en tablets */
-        }
-        
-        /* Oculta la barra de scroll para que se vea más limpio */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #fff0f5; 
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #fbcfe8; 
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #f472b6; 
-        }
-
-        /* Animación suave para cuando caen los productos al carrito */
         @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.9) translateY(10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
-        .pop-animation {
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        /* Ocultar barra de desplazamiento para que se vea más como app */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #fff4cc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; }
     </style>
 </head>
-<!-- Hacemos click en cualquier lado de la pantalla para devolverle el foco al escáner -->
-<body class="h-screen flex flex-col overflow-hidden" onclick="mantenerFoco()">
+<body class="bg-pame-pink h-screen flex flex-col overflow-hidden" onclick="mantenerFoco()">
 
-    <!-- Cabecera de Pame Store -->
-    <header class="bg-gradient-to-r from-pame-main to-pame-accent text-white p-4 shadow-lg rounded-b-[2rem] mx-2 mt-2 flex justify-between items-center border-4 border-white">
-        <div class="text-4xl">🦄</div>
-        <h1 class="text-4xl md:text-5xl font-bold tracking-wide drop-shadow-md text-center flex-1">
-            🎀 Pame Store 🎀
+    <!-- Header Cute -->
+    <header class="bg-white text-pame-darkpink p-4 shadow-sm text-center rounded-b-3xl mx-4 mt-2 border-b-4 border-pame-purple">
+        <h1 class="text-4xl font-bold tracking-wide flex items-center justify-center gap-3">
+            🦄 <span>Pame Store</span> 🎀
         </h1>
-        <div class="text-4xl">🍭</div>
     </header>
 
     <main class="flex-1 flex flex-col md:flex-row p-4 gap-6 overflow-hidden">
         
-        <!-- Panel Izquierdo: Escáner y Lista de Productos -->
-        <div class="flex-1 bg-white/90 backdrop-blur-sm rounded-[2rem] shadow-xl p-6 flex flex-col border-4 border-white relative">
+        <!-- Panel Izquierdo: Escáner y Carrito -->
+        <div class="flex-1 bg-white rounded-[2rem] shadow-lg p-6 flex flex-col border-4 border-white">
             
-            <!-- Icono decorativo -->
-            <div class="absolute -top-4 -left-4 text-5xl transform -rotate-12">🛍️</div>
-
-            <!-- Input del Escáner (Mágico) -->
-            <div class="relative">
-                <input type="text" id="escaner" inputmode="none" placeholder="¡Escanea un juguete aquí! ✨" 
-                       class="w-full text-2xl md:text-3xl p-5 pl-14 border-4 border-pame-light rounded-2xl focus:outline-none focus:border-pame-main focus:ring-4 focus:ring-pame-light transition-all mb-2 bg-white text-pame-dark font-medium placeholder-pame-main/50" autofocus>
-                <div class="absolute left-4 top-6 text-3xl opacity-60">🪄</div>
+            <div class="relative mb-2">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-2xl">
+                    🪄
+                </div>
+                <!-- inputmode="none" evita que salga el teclado virtual -->
+                <input type="text" id="escaner" inputmode="none" placeholder="¡Pasa el código de barras por el lector!" 
+                       class="w-full text-xl pl-12 pr-4 py-4 border-4 border-pame-purple rounded-[1.5rem] focus:outline-none focus:border-pame-darkpink bg-pame-yellow text-gray-700 font-semibold placeholder-gray-400" autofocus>
             </div>
             
-            <div id="mensaje" class="text-center h-8 text-pame-dark font-bold text-lg mb-2"></div>
+            <div id="mensaje" class="text-center h-8 text-pame-darkpink font-bold text-lg"></div>
 
-            <!-- Lista del Carrito -->
-            <div class="flex-1 overflow-y-auto bg-pame-light/30 rounded-2xl border-2 border-pame-light p-2">
-                <table class="w-full text-left border-collapse">
-                    <thead class="sticky top-0 bg-white/90 backdrop-blur-sm shadow-sm rounded-xl">
-                        <tr class="text-pame-accent text-xl">
-                            <th class="py-3 px-4 rounded-tl-xl">Producto</th>
-                            <th class="py-3 px-4 text-right rounded-tr-xl">Precio</th>
+            <div class="flex-1 overflow-y-auto bg-gray-50 rounded-[1.5rem] p-4 border-2 border-gray-100">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b-2 border-pame-mint text-gray-400 text-lg">
+                            <th class="py-2 pb-3 font-semibold">Juguete / Dulce</th>
+                            <th class="py-2 pb-3 font-semibold text-right">Precio</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-carrito" class="text-xl">
-                        <!-- Aquí caen los productos escaneados -->
-                        <tr id="empty-state">
-                            <td colspan="2" class="text-center py-10 text-gray-400">
-                                <div class="text-6xl mb-4 opacity-50">🛒</div>
-                                ¡Pasa un producto por el lector!
-                            </td>
-                        </tr>
+                    <tbody id="lista-carrito">
+                        <!-- Productos escaneados -->
                     </tbody>
                 </table>
+                <div id="carrito-vacio" class="text-center text-gray-400 mt-10 text-xl flex flex-col items-center">
+                    <span class="text-4xl mb-2">🛒</span>
+                    ¡El carrito está vacío!
+                </div>
             </div>
         </div>
 
-        <!-- Panel Derecho: Pantalla de Cobro -->
-        <div class="md:w-1/3 bg-white/90 backdrop-blur-sm rounded-[2rem] shadow-xl p-6 flex flex-col justify-between border-4 border-white relative">
+        <!-- Panel Derecho: Totales -->
+        <div class="md:w-1/3 bg-white rounded-[2rem] shadow-lg p-8 flex flex-col justify-between border-4 border-white relative overflow-hidden">
+            <!-- Decoración de fondo -->
+            <div class="absolute -top-10 -right-10 text-8xl opacity-10 pointer-events-none">✨</div>
             
-            <!-- Decoración -->
-            <div class="absolute -top-5 -right-4 text-6xl transform rotate-12">💖</div>
-
             <div class="text-center mt-4">
-                <h2 class="text-2xl text-pame-accent font-bold mb-4 uppercase tracking-wider">Total a Pagar</h2>
-                <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl p-6 shadow-inner border-4 border-gray-300">
-                    <div class="text-6xl md:text-7xl font-bold text-pame-dark drop-shadow-sm" id="total-pantalla">$0.00</div>
+                <h2 class="text-2xl text-gray-400 font-semibold mb-2">Total Mágico</h2>
+                <div class="text-6xl font-bold text-pame-darkpink bg-pame-yellow py-6 rounded-[2rem] border-4 border-pame-mint inline-block w-full" id="total-pantalla">
+                    $0.00
                 </div>
             </div>
             
-            <div class="mt-8 flex flex-col gap-4">
-                <!-- Botón de Cobrar (Parece de dulce) -->
-                <button onclick="cobrar()" id="btn-cobrar" class="w-full bg-gradient-to-b from-green-400 to-emerald-500 hover:from-green-300 hover:to-emerald-400 text-white text-4xl font-bold py-6 rounded-[2rem] shadow-[0_10px_0_0_#059669] hover:shadow-[0_5px_0_0_#059669] hover:translate-y-[5px] transition-all active:shadow-none active:translate-y-[10px] uppercase tracking-wide flex items-center justify-center gap-3">
-                    <span>💵 COBRAR!</span>
+            <div class="flex flex-col gap-4 mt-8">
+                <button onclick="cobrar()" class="w-full bg-pame-mint text-gray-800 text-3xl font-bold py-6 rounded-[2rem] shadow-[0_8px_0_#75d675] hover:shadow-[0_4px_0_#75d675] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2 border-2 border-[#75d675]">
+                    💖 ¡COBRAR! 💖
                 </button>
-
-                <!-- Botón de Cancelar -->
-                <button onclick="limpiarCarrito()" class="w-full bg-red-100 hover:bg-red-200 text-red-500 text-xl font-bold py-4 rounded-2xl transition-colors mt-2">
+                <button onclick="limpiarCarrito()" class="w-full text-gray-400 font-semibold p-4 hover:bg-gray-100 rounded-[1.5rem] transition-colors text-lg">
                     ❌ Empezar de nuevo
                 </button>
             </div>
         </div>
     </main>
 
-    <!-- Modal de Éxito (Se muestra al cobrar) -->
-    <div id="modal-exito" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-[3rem] p-10 text-center shadow-2xl transform scale-95 transition-transform duration-300 border-8 border-pame-main max-w-sm mx-4">
-            <div class="text-8xl mb-4 animate-bounce">🎉</div>
-            <h2 class="text-4xl font-bold text-pame-main mb-2">¡Venta Lista!</h2>
-            <p class="text-xl text-gray-600 mb-6 font-medium">Gracias por tu compra en Pame Store.</p>
-            <button onclick="cerrarModal()" class="bg-pame-accent text-white font-bold text-2xl py-3 px-8 rounded-full shadow-lg hover:bg-purple-500 transition-colors">
-                Siguiente Cliente 💖
+    <!-- Modal de Venta Exitosa -->
+    <div id="modal-exito" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full mx-4 text-center transform scale-90 transition-transform duration-300 pop-in border-4 border-pame-pink">
+            <div class="text-6xl mb-4">🎉</div>
+            <h2 class="text-3xl font-bold text-pame-darkpink mb-2">¡Venta Exitosa!</h2>
+            <p class="text-gray-600 text-xl mb-6">Gracias por comprar en Pame Store.</p>
+            <div class="text-4xl font-bold text-gray-800 bg-pame-yellow py-4 rounded-xl mb-6 border-2 border-pame-mint" id="modal-total">
+                $0.00
+            </div>
+            <button onclick="cerrarModal()" class="w-full bg-pame-purple text-white text-2xl font-bold py-4 rounded-2xl shadow-[0_6px_0_#a87df0] hover:shadow-[0_3px_0_#a87df0] hover:translate-y-1 transition-all active:shadow-none active:translate-y-2">
+                Siguiente Cliente 🌈
             </button>
         </div>
     </div>
 
-    <!-- ===== LÓGICA DE JAVASCRIPT ===== -->
     <script>
-        // 🛑 RECUERDA PONER TU URL DE APPS SCRIPT AQUÍ 🛑
-        const API_URL = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
+        // AQUÍ ESTÁ TU URL DE LA API
+        const API_URL = "https://script.google.com/macros/s/AKfycbxQSws_dDfaF4DjabD3oSGwuZ1Qhsj5XKvBe0acYlqmjjVQmf9OTn8Hs5UVIEO9mVFgdw/exec"; 
         
         let carrito = [];
         let total = 0;
@@ -169,36 +129,31 @@
         const listaCarrito = document.getElementById('lista-carrito');
         const totalPantalla = document.getElementById('total-pantalla');
         const mensaje = document.getElementById('mensaje');
-        const emptyState = document.getElementById('empty-state');
+        const carritoVacio = document.getElementById('carrito-vacio');
         const modalExito = document.getElementById('modal-exito');
 
-        // Escuchar el escáner (El lector manda un 'Enter' al terminar de leer)
+        // Escuchar el escáner
         inputEscaner.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const codigo = this.value.trim();
-                this.value = ''; // Limpiar el input rapidísimo
+                this.value = ''; 
                 if(codigo) buscarProducto(codigo);
             }
         });
 
-        // Asegurar que el input siempre esté listo para leer, sin mostrar teclado
+        // Forzar que el teclado no salga en la tablet, pero siempre pueda leer
         function mantenerFoco() {
-            inputEscaner.focus();
+            // Un pequeño delay ayuda en algunos navegadores de tablet
+            setTimeout(() => inputEscaner.focus(), 10);
         }
 
         async function buscarProducto(codigo) {
-            mensaje.innerHTML = `<span class="animate-pulse">✨ Buscando producto mágico... ✨</span>`;
+            mensaje.innerText = "✨ Buscando la magia... ✨";
+            mensaje.classList.remove("text-red-500");
+            mensaje.classList.add("text-pame-purple");
+            
             try {
-                // Si aún no pones la URL de Apps Script, metemos datos falsos para que puedas probar el diseño
-                if (API_URL === "TU_URL_DE_APPS_SCRIPT_AQUI") {
-                    setTimeout(() => {
-                        agregarAlCarrito("Juguete de Prueba", Math.floor(Math.random() * 50) + 10);
-                        mensaje.innerText = "";
-                    }, 500);
-                    return;
-                }
-
                 const response = await fetch(`${API_URL}?codigo=${codigo}`);
                 const data = await response.json();
 
@@ -206,52 +161,58 @@
                     agregarAlCarrito(data.producto, parseFloat(data.precio));
                     mensaje.innerText = "";
                 } else {
-                    mensaje.innerText = "¡Oops! Código no encontrado 🥺";
+                    mensaje.innerText = "¡Uy! Código no encontrado 🙈";
+                    mensaje.classList.add("text-red-500");
+                    mensaje.classList.remove("text-pame-purple");
                     setTimeout(() => mensaje.innerText = "", 2000);
                 }
             } catch (error) {
-                mensaje.innerText = "Problema de conexión 🔌";
+                // Modo offline de emergencia por si falla el internet
+                console.error("Error de conexión", error);
+                mensaje.innerText = "Error de conexión 📡";
                 setTimeout(() => mensaje.innerText = "", 2000);
             }
         }
 
         function agregarAlCarrito(nombre, precio) {
-            if(carrito.length === 0 && emptyState) {
-                emptyState.style.display = 'none';
-            }
-
             carrito.push({ nombre, precio });
             total += precio;
+            actualizarUI();
+        }
+
+        function actualizarUI() {
+            listaCarrito.innerHTML = '';
             
-            // Crear el elemento de la fila con animación
-            const tr = document.createElement('tr');
-            tr.className = "border-b-2 border-pame-light/50 bg-white pop-animation";
-            tr.innerHTML = `
-                <td class="py-4 px-4 font-medium text-gray-700 rounded-l-xl">🎀 ${nombre}</td>
-                <td class="py-4 px-4 font-bold text-pame-dark text-right rounded-r-xl">$${precio.toFixed(2)}</td>
-            `;
-            listaCarrito.appendChild(tr);
+            if (carrito.length === 0) {
+                carritoVacio.style.display = 'flex';
+            } else {
+                carritoVacio.style.display = 'none';
+                
+                carrito.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    // Solo el último elemento tiene animación pop-in
+                    if (index === carrito.length - 1) {
+                        tr.className = "border-b-2 border-gray-100 hover:bg-gray-100 pop-in transition-colors";
+                    } else {
+                        tr.className = "border-b-2 border-gray-100 hover:bg-gray-100 transition-colors";
+                    }
+                    
+                    tr.innerHTML = `
+                        <td class="py-4 text-xl text-gray-700 font-medium pl-2">⭐ ${item.nombre}</td>
+                        <td class="py-4 text-2xl font-bold text-pame-darkpink text-right pr-2">$${item.precio.toFixed(2)}</td>
+                    `;
+                    listaCarrito.appendChild(tr);
+                });
+            }
             
-            // Actualizar total
             totalPantalla.innerText = `$${total.toFixed(2)}`;
-            
-            // Auto-scroll al fondo
-            const contenedorLista = listaCarrito.parentElement.parentElement;
-            contenedorLista.scrollTop = contenedorLista.scrollHeight;
+            listaCarrito.parentElement.parentElement.scrollTop = listaCarrito.parentElement.parentElement.scrollHeight;
         }
 
         function limpiarCarrito() {
             carrito = [];
             total = 0;
-            listaCarrito.innerHTML = `
-                <tr id="empty-state">
-                    <td colspan="2" class="text-center py-10 text-gray-400">
-                        <div class="text-6xl mb-4 opacity-50">🛒</div>
-                        ¡Pasa un producto por el lector!
-                    </td>
-                </tr>
-            `;
-            totalPantalla.innerText = `$0.00`;
+            actualizarUI();
             mantenerFoco();
         }
 
@@ -262,42 +223,38 @@
                 return;
             }
             
-            const btn = document.getElementById('btn-cobrar');
+            const btn = document.querySelector('button');
             const textoOriginal = btn.innerHTML;
-            btn.innerHTML = `<span class="animate-pulse">⏳ Procesando...</span>`;
+            btn.innerHTML = "⏳ Mágia en proceso...";
             btn.disabled = true;
 
             try {
-                // Si estamos en modo prueba (sin API real conectada aún)
-                if (API_URL === "TU_URL_DE_APPS_SCRIPT_AQUI") {
-                    await new Promise(r => setTimeout(r, 1000)); // Simular espera
-                } else {
-                    await fetch(API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ total: total, articulos: carrito })
-                    });
-                }
+                // Registrar venta en Google Sheets
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ total: total, articulos: carrito })
+                });
                 
-                // Mostrar modal de éxito
+                // Mostrar Ticket de Éxito
+                document.getElementById('modal-total').innerText = `$${total.toFixed(2)}`;
                 modalExito.classList.remove('hidden');
-                modalExito.children[0].classList.replace('scale-95', 'scale-100');
                 
             } catch (error) {
-                alert("Hubo un error al guardar la venta en la base de datos.");
+                alert("Hubo un error de conexión, pero no pasa nada, sigamos jugando.");
+                console.error(error);
             } finally {
                 btn.innerHTML = textoOriginal;
                 btn.disabled = false;
-                mantenerFoco();
             }
         }
 
         function cerrarModal() {
-            modalExito.children[0].classList.replace('scale-100', 'scale-95');
-            setTimeout(() => {
-                modalExito.classList.add('hidden');
-                limpiarCarrito();
-            }, 200); // Dar tiempo a la animación de salida
+            modalExito.classList.add('hidden');
+            limpiarCarrito();
         }
+
+        // Iniciar con UI limpia
+        actualizarUI();
     </script>
 </body>
 </html>
