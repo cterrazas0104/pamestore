@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Corte de Caja - Pame Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Fredoka', 'sans-serif'] }, colors: { pame: { pink: '#ffb6c1', darkpink: '#ff6b81', purple: '#cda4ff', mint: '#98ff98', yellow: '#fff4cc' } } } } }
+    </script>
+</head>
+<body class="bg-pame-pink min-h-screen flex flex-col p-4 md:p-8">
+
+    <header class="bg-white text-pame-darkpink p-6 shadow-lg text-center rounded-[2rem] border-b-4 border-pame-purple mb-8">
+        <h1 class="text-4xl font-bold flex items-center justify-center gap-3">
+            👑 <span>Panel de Gerencia: Pame Store</span> 📊
+        </h1>
+    </header>
+
+    <main class="flex-1 bg-white rounded-[2rem] shadow-lg p-4 md:p-6 border-4 border-white flex flex-col">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 bg-pame-yellow p-4 rounded-xl border-2 border-pame-mint gap-4">
+            <h2 class="text-2xl font-bold text-gray-700">Ventas del Día</h2>
+            <div class="text-right">
+                <span class="text-gray-500 font-semibold text-lg">Total Ganado:</span>
+                <span id="total-ganancias" class="text-4xl font-bold text-pame-darkpink ml-2">$0.00</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border-2 border-gray-100">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 border-b-4 border-pame-purple">
+                        <th class="p-4 rounded-tl-xl font-bold text-lg">Ticket / Fecha</th>
+                        <th class="p-4 font-bold text-lg">Método</th>
+                        <th class="p-4 font-bold text-lg">Artículos Vendidos</th>
+                        <th class="p-4 rounded-tr-xl font-bold text-lg text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-ventas">
+                    <tr><td colspan="4" class="text-center p-8 text-xl text-gray-400">Cargando la magia... ⏳</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <a href="index.html" class="inline-block bg-pame-purple text-white text-xl font-bold py-3 px-8 rounded-xl shadow-[0_4px_0_#a87df0] hover:translate-y-1 active:translate-y-2 active:shadow-none transition-all">
+                ⬅️ Regresar a la Tiendita
+            </a>
+        </div>
+    </main>
+
+    <script>
+        // PEGA AQUÍ TU API URL 
+        const API_URL = "https://script.google.com/macros/s/AKfycbzqcJcyzCJD6hD4DFOayWjgkJqtsmpAS91eHWDVkt4lROi41wCY3uBP4M_H40FJz20HVg/exec"; 
+
+        async function cargarVentas() {
+            try {
+                const response = await fetch(`${API_URL}?action=reporte`);
+                const json = await response.json();
+                
+                const tabla = document.getElementById('tabla-ventas');
+                const labelGanancias = document.getElementById('total-ganancias');
+                
+                if(json.status === 'success' && json.data.length > 0) {
+                    tabla.innerHTML = '';
+                    let totalDinero = 0;
+                    
+                    json.data.reverse().forEach(venta => {
+                        let totalVenta = parseFloat(venta.total);
+                        if(isNaN(totalVenta)) totalVenta = 0;
+                        totalDinero += totalVenta;
+                        
+                        let badgeColor = venta.metodo.includes("Tarjeta") ? "bg-blue-100 text-blue-700 border-blue-300" : "bg-green-100 text-green-700 border-green-300";
+                        
+                        // Traductor mágico de tu JSON a texto normal
+                        let articulosLegibles = venta.articulos;
+                        try {
+                            const arr = JSON.parse(venta.articulos);
+                            if(Array.isArray(arr)){
+                                articulosLegibles = arr.map(a => a.nombre || a.producto).join(', ');
+                            }
+                        } catch(e) {}
+                        
+                        tabla.innerHTML += `
+                            <tr class="border-b-2 border-gray-50 hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    <div class="font-bold text-pame-purple">${venta.ticket}</div>
+                                    <div class="text-sm text-gray-500">${venta.fecha}</div>
+                                </td>
+                                <td class="p-4">
+                                    <span class="px-3 py-1 rounded-full border-2 font-bold text-sm ${badgeColor}">${venta.metodo}</span>
+                                </td>
+                                <td class="p-4 text-gray-700 font-medium">${articulosLegibles}</td>
+                                <td class="p-4 text-2xl font-bold text-gray-800 text-right">$${totalVenta.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    labelGanancias.innerText = `$${totalDinero.toFixed(2)}`;
+                } else {
+                    tabla.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-xl text-gray-400">Aún no hay ventas registradas hoy 🤷‍♀️</td></tr>';
+                }
+            } catch(e) {
+                document.getElementById('tabla-ventas').innerHTML = '<tr><td colspan="4" class="text-center p-8 text-xl text-red-400">Error al conectar con la base de datos 📡</td></tr>';
+            }
+        }
+
+        window.onload = cargarVentas;
+    </script>
+</body>
+</html>
