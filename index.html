@@ -46,7 +46,6 @@
         ::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; }
     </style>
 </head>
-<!-- Quitamos h-screen y overflow-hidden para permitir scroll en celulares -->
 <body class="bg-pame-pink min-h-screen flex flex-col" onclick="initAudio(); mantenerFoco()">
 
     <header class="bg-white text-pame-darkpink p-4 shadow-sm text-center rounded-b-3xl mx-4 mt-2 border-b-4 border-pame-purple relative overflow-hidden">
@@ -55,7 +54,6 @@
         </h1>
     </header>
 
-    <!-- Quitamos overflow-hidden aquí también -->
     <main class="flex-1 flex flex-col md:flex-row p-4 gap-6">
 
         <div class="flex-1 bg-white rounded-[2rem] shadow-lg p-6 flex flex-col border-4 border-white">
@@ -67,7 +65,6 @@
 
             <div id="mensaje" class="text-center h-8 text-pame-darkpink font-bold text-lg transition-all duration-300"></div>
 
-            <!-- Agregamos min-h-[200px] para que la tabla no colapse en el celular -->
             <div class="flex-1 overflow-y-auto bg-gray-50 rounded-[1.5rem] p-4 border-2 border-gray-100 min-h-[200px] md:min-h-0">
                 <table class="w-full text-left">
                     <thead>
@@ -206,11 +203,12 @@
         }
 
         function celebrarVentaMágica(textoTotal) {
-            document.getElementById('modal-total').innerText = textoTotal;
+            initAudio(); // Forzamos activar el audio al dar clic en la celebración
+            document.getElementById('modal-total').innerHTML = textoTotal;
             modalExito.classList.remove('hidden');
             
             lanzarConfeti();
-            hablar("¡Venta mágica completada pues! Gracias por comprar en Pame Store.");
+            hablar("¡Venta mágica completada uju! Gracias por comprar en Pame Store.");
         }
 
         inputEscaner.addEventListener('keypress', function(e) {
@@ -363,7 +361,15 @@
         window.onload = function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get("pago") === "exito") {
-                celebrarVentaMágica("¡PAGADO CON TARJETA!"); 
+                // TRUCO MÁGICO: Un botón que obliga al usuario a hacer clic para destrabar el audio
+                const botonRegalo = `
+                    <button onclick="celebrarVentaMágica('¡PAGADO CON TARJETA!')" 
+                            class="w-full bg-pame-mint text-white rounded-xl text-3xl py-4 animate-bounce shadow-lg border-4 border-green-300">
+                        🎁 Destapar Ticket
+                    </button>
+                `;
+                document.getElementById('modal-total').innerHTML = botonRegalo;
+                modalExito.classList.remove('hidden');
             } else if (params.get("pago") === "cancelado") {
                 mensaje.innerText = "Pago cancelado por el cliente 😔";
                 mensaje.classList.add("text-red-500");
