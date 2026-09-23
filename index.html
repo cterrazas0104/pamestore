@@ -66,7 +66,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-2xl">
                     🪄
                 </div>
-                <input type="text" id="escaner" inputmode="none" placeholder="¡Pasa el código de barras por el lector!" 
+                <input type="text" id="escaner" inputmode="none" placeholder="¡Pasa el código por el lector!" 
                        class="w-full text-xl pl-12 pr-4 py-4 border-4 border-pame-purple rounded-[1.5rem] focus:outline-none focus:border-pame-darkpink bg-pame-yellow text-gray-700 font-semibold placeholder-gray-400" autofocus>
             </div>
             
@@ -146,74 +146,82 @@
         const carritoVacio = document.getElementById('carrito-vacio');
         const modalExito = document.getElementById('modal-exito');
 
-        // --- SISTEMA DE SONIDOS MÁGICOS ---
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        // --- SISTEMA DE SONIDOS MÁGICOS (A PRUEBA DE FALLOS) ---
+        let audioCtx = null;
 
         function reproducirSonidoEscaneo() {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            // Tono agudo y dulce tipo "campanita"
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota A5
-            osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // Sube a A6
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            try {
+                // Solo inicializa el audio si el navegador lo permite
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) audioCtx = new AudioContext();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                if (audioCtx) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch (error) {
+                // Si la tablet bloquea el audio, no hacemos nada, pero evitamos que se caiga la tienda.
+                console.log("El dispositivo bloqueó el sonido mágico.");
+            }
         }
 
         function hablar(texto) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(texto);
-                utterance.lang = 'es-MX';
-                utterance.pitch = 1.4; // Voz un poquito más aguda y dulce
-                utterance.rate = 1.0; 
-                window.speechSynthesis.speak(utterance);
+            try {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(texto);
+                    utterance.lang = 'es-MX';
+                    utterance.pitch = 1.4; 
+                    utterance.rate = 1.0; 
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (error) {
+                console.log("El dispositivo bloqueó la voz mágica.");
             }
         }
 
         function fiestaConfeti() {
-            // Lluvia de confeti pastel
-            var duration = 3000;
-            var end = Date.now() + duration;
-
-            (function frame() {
-                confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: ['#ffb6c1', '#ff6b81', '#cda4ff', '#98ff98', '#fff4cc']
-                });
-                confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: ['#ffb6c1', '#ff6b81', '#cda4ff', '#98ff98', '#fff4cc']
-                });
-
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            }());
+            try {
+                var duration = 3000;
+                var end = Date.now() + duration;
+                (function frame() {
+                    confetti({
+                        particleCount: 5, angle: 60, spread: 55, origin: { x: 0 },
+                        colors: ['#ffb6c1', '#ff6b81', '#cda4ff', '#98ff98', '#fff4cc']
+                    });
+                    confetti({
+                        particleCount: 5, angle: 120, spread: 55, origin: { x: 1 },
+                        colors: ['#ffb6c1', '#ff6b81', '#cda4ff', '#98ff98', '#fff4cc']
+                    });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            } catch (error) {
+                console.log("El dispositivo no soportó el confeti.");
+            }
         }
 
         function celebrarVentaExitosa(textoModal) {
             document.getElementById('modal-total').innerText = textoModal;
             modalExito.classList.remove('hidden');
             modalExito.querySelector('div').classList.add('pop-in');
-            
-            // ¡Desatar la magia!
             fiestaConfeti();
             hablar("¡Venta mágica completada! Gracias por comprar en Pame Store.");
         }
         // --- FIN SISTEMA DE SONIDOS ---
 
+        // Escucha del escáner (¡Asegurado para que no se caiga!)
         inputEscaner.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -225,8 +233,10 @@
 
         function mantenerFoco() {
             setTimeout(() => inputEscaner.focus(), 10);
-            // Esto también ayuda a desbloquear el audio en navegadores estrictos
-            if(audioCtx.state === 'suspended') audioCtx.resume();
+            // Intentamos desbloquear el audio silenciosamente al tocar la pantalla
+            try {
+                if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            } catch(e){}
         }
 
         async function buscarProducto(codigoEscaneado) {
@@ -239,9 +249,7 @@
                 const data = await response.json();
 
                 if (data.status === 'success') {
-                    // ¡Sonidito de campanita al encontrar producto!
                     reproducirSonidoEscaneo();
-                    
                     agregarAlCarrito(data.codigo, data.producto, parseFloat(data.precio));
                     mensaje.innerText = "";
                 } else {
@@ -287,9 +295,8 @@
                 });
             }
             
-            // Efecto de rebote en el total al agregar
             totalPantalla.classList.remove('scale-110');
-            void totalPantalla.offsetWidth; // Trigger reflow
+            void totalPantalla.offsetWidth; 
             if(carrito.length > 0) totalPantalla.classList.add('scale-110');
             
             totalPantalla.innerText = `$${total.toFixed(2)}`;
@@ -333,7 +340,6 @@
                     window.location.href = data.url;
                 } else if (metodo === 'efectivo' && data.status === 'success') {
                     restaurarBotones();
-                    // Llama a la celebración mágica
                     celebrarVentaExitosa(`$${total.toFixed(2)}`);
                 } else {
                     alert("Uy, algo salió mal con la magia: " + (data.message || "Desconocido"));
@@ -370,7 +376,6 @@
         window.onload = function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get("pago") === "exito") {
-                // Llama a la celebración si venimos de Stripe
                 celebrarVentaExitosa("¡PAGADO CON TARJETA!");
             } else if (params.get("pago") === "cancelado") {
                 mensaje.innerText = "El cliente canceló la magia 😔";
